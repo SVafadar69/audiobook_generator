@@ -4,8 +4,17 @@ import os
 from PIL import Image
 from io import BytesIO
 import requests
-from reserve import (get_download_url, parse_response, load_api_key, retrieve_book)
-#from ipynb.fs.full.reserve import 
+from reserve import(
+    get_download_url,
+    parse_response, 
+    load_api_key,
+    retrieve_book,
+    download_book,
+    get_epub_contents,
+    route_response, 
+    )
+
+
 first_downloaded_save_path = os.getcwd()
 
 openai_api_key, rapidai_api_key = load_api_key()
@@ -72,10 +81,16 @@ st.markdown("<h1 style='text-align: center; font-size: 3.5rem; padding-bottom: 2
 # The Search Bar
 search_query = st.text_input("Enter in any book. Include author and extension type (pdf, .epub) if you can.", placeholder="Search...")
 if search_query:
-    book_name, author, file_type = ast.literal_eval(parse_response(search_query))
-    results = retrieve_book(book_name, author, file_type)
-    print(f'results: {results[0]}')
-    cols = st.columns(len(results))
+    route_answer = route_response(search_query)
+    print(f'route_answer: {route_answer}')
+    if ast.literal_eval(route_answer) == "book": 
+        book_name, author, file_type = ast.literal_eval(parse_response(search_query))
+        results = retrieve_book(book_name, author, file_type)
+        print(f'results: {results[0]}')
+    elif ast.literal_eval(route_answer) == "article": 
+        articles = make_exa_call(query = search_query)
+    cols = st.columns(len(results[:3]))
+    print(f'cols == {len(cols)} == number of valid books')
     for col, book in zip(cols, results):
         # book_download_url = book.get('md5', '')
         # if book_download_url: 
@@ -85,12 +100,27 @@ if search_query:
             title, author, img_url, date = book.get('title'), book.get('author'), book.get('imgUrl'), book.get('year')
             print(title, author, img_url, date)
             if title: 
-                st.markdown(f'**{title}**')
-            if img_url: 
-                st.image(Image.open('/Users/sv/Desktop/audiobooks/IMG_4216.jpeg'), caption='SV')
-                #st.image(download_image(img_url))
+                col.markdown(f'**{title}**')
             if author:
-                st.markdown(f"{author}")
+                col.text(f"{author}")
             if date: 
-                st.markdown(f"{date}")
-            break
+                col.text(f"{date}")
+
+            st.markdown(
+                f"""
+                <div class="book-card">
+                    <a href="{title}" target="_blank">
+                        <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 4px;">{title}</div>
+                    </a>
+                    <a href="{title}" target="_blank">
+                        <div style="font-size: 0.95rem;">{author}</div>
+                    </a>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+# online articles (exa api - links about X article), online web agent (do task on web get info), 
+# books (what you did) | exa article pulls -> LLM most capable at large contexts -> format into 
+# audiobook digestable format
+# 
