@@ -15,7 +15,7 @@ import requests
 #     )
 
 from _test import (
-    make_exa_call_summary,
+    make_exa_call,
     get_download_url,
     parse_response, 
     load_api_key,
@@ -97,8 +97,8 @@ if search_query:
         results = retrieve_book(book_name, author, file_type)
         print(f'results: {results[0]}')
     elif ast.literal_eval(route_answer) == "article": 
-        articles = make_exa_call_summary(query = search_query)
-        print(f'articles: {articles}')
+        results = make_exa_call(query = search_query)
+        print(f'articles: {results}')
     cols = st.columns(len(results[:3]))
     print(f'cols == {len(cols)} == number of valid books')
     for col, book in zip(cols, results):
