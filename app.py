@@ -4,16 +4,25 @@ import os
 from PIL import Image
 from io import BytesIO
 import requests
-from reserve import(
+# from reserve import(
+#     get_download_url,
+#     parse_response, 
+#     load_api_key,
+#     retrieve_book,
+#     download_book,
+#     get_epub_contents,
+#     route_response, 
+#     )
+
+from _test import (
+    make_exa_call_summary,
     get_download_url,
     parse_response, 
     load_api_key,
     retrieve_book,
     download_book,
     get_epub_contents,
-    route_response, 
-    )
-
+    route_response)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -88,7 +97,8 @@ if search_query:
         results = retrieve_book(book_name, author, file_type)
         print(f'results: {results[0]}')
     elif ast.literal_eval(route_answer) == "article": 
-        articles = make_exa_call(query = search_query)
+        articles = make_exa_call_summary(query = search_query)
+        print(f'articles: {articles}')
     cols = st.columns(len(results[:3]))
     print(f'cols == {len(cols)} == number of valid books')
     for col, book in zip(cols, results):

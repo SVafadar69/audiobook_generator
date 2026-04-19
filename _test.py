@@ -42,6 +42,158 @@ ORGANIZE_SYSTEM_PROMPT = (
     "tags, no thinking strings, etc."
 )
 
+def load_api_key():
+    openai_api_key = os.getenv('openai_api_key')
+    rapidai_api_key = os.getenv('rapidai_api_key')
+    return openai_api_key, rapidai_api_key
+
+def route_response(user_input: str):
+    """
+    Deconstruct user query to extract book_name, author, and file_type.
+    Returns list: [book_name, author, file_type]
+    Uses fastest OpenAI model available in 2026: gpt-5.4-nano
+    """
+    # Initialize client with API key from environment variable
+    client = OpenAI(api_key=openai_api_key)
+    
+    # System prompt with proper formatting - fixed quote escaping
+    system_prompt = '''Your job is to determine based on the user input if they are inquiring
+    about a book, or want to research something using articles. Your response should be ONLY one of: 
+    "article" or "book" in double quotes. All in lowercase. Do not return anything else except one of those two responses.
+    
+    User query: {user_input}
+    Your response: '''
+    
+    # Format the prompt correctly using .format() instead of f-string with replace
+    formatted_prompt = system_prompt.format(user_input=user_input)
+    
+    # Use the fastest generation model: gpt-5.4-nano (based on 2026 benchmarks)
+    response = client.responses.create(
+        model="gpt-5.4-nano",
+        input=formatted_prompt
+    )
+    
+    # Extract and return just the response text
+    return response.output_text.strip()
+
+def parse_response(user_input: str):
+    """
+    Deconstruct user query to extract book_name, author, and file_type.
+    Returns list: [book_name, author, file_type]
+    Uses fastest OpenAI model available in 2026: gpt-5.4-nano
+    """
+    # Initialize client with API key from environment variable
+    client = OpenAI(api_key=openai_api_key)
+    
+    # System prompt with proper formatting - fixed quote escaping
+    system_prompt = '''Your job is to deconstruct the given user query and return it as a list. 
+    The query should contain book_name, author, and file_type. 
+    Your response should be as: [book_name, author, file_type]. 
+    Return only that list - no json strings, no thinking tags, etc.
+    If no author or file type is provided, use "" as the variable. 
+    
+    User query: {user_input}
+    Your response: '''
+    
+    # Format the prompt correctly using .format() instead of f-string with replace
+    formatted_prompt = system_prompt.format(user_input=user_input)
+    
+    # Use the fastest generation model: gpt-5.4-nano (based on 2026 benchmarks)
+    response = client.responses.create(
+        model="gpt-5.4-nano",
+        input=formatted_prompt
+    )
+    
+    # Extract and return just the response text
+    return response.output_text.strip()
+
+def retrieve_book(book_name: str, author: str, file_type: list):
+
+    print(f'file type: {type(file_type)}')
+    print(f'{file_type}')
+    if not author: 
+        author = ""
+    
+    if isinstance(file_type, str):
+        file_type = [file_type] if file_type else []
+    file_type = [f for f in file_type if f]
+
+    if len(file_type) > 1: file_type = ','.join(file_type)
+    elif len(file_type) == 1: file_type = file_type[0]
+    else: file_type = ""
+
+    non_member_sources = {'lgli', 'lgrs', 'nexusstc'}
+    
+    url = "https://annas-archive-api.p.rapidapi.com/search"
+
+    print(f'using filetype: {file_type}')
+
+
+    querystring = {"q":f"{book_name}","author":f"{author}","cat":"fiction, nonfiction, comic, magazine, musicalscore, other, unknown","page":"1","ext":f"{file_type}","sort":"mostRelevant","source":"libgenLi, libgenRs"}
+
+    headers = {
+	"x-rapidapi-key": f"{rapidai_api_key}",
+	"x-rapidapi-host": "annas-archive-api.p.rapidapi.com",
+	"Content-Type": "application/json"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+    books = response.json().get('books', [])
+
+
+    if len(books): 
+        extracted = sorted(
+            [
+                {
+                    'title':  book['title'],
+                    'author': book['author'],
+                    'md5':    book['md5'],
+                    'imgUrl': book['imgUrl'],
+                    'year':   book['year'], 
+                }
+                for book in books
+                if non_member_sources.intersection(book.get('sources', []))
+            ],
+            key=lambda x: x['author']
+        )
+
+    return extracted 
+
+def get_download_url(md5): 
+    url = "https://annas-archive-api.p.rapidapi.com/download"
+
+    querystring = {"md5":f"{md5}"}
+
+    headers = {
+        "x-rapidapi-key": f"{rapidai_api_key}",
+        "x-rapidapi-host": "annas-archive-api.p.rapidapi.com",
+        "Content-Type": "application/json"
+    }
+
+    try: 
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()
+
+        return response.json()
+    except Exception as e: 
+        return f'Error received when trying to download the book: {e}\n \
+            Please try another title.'
+
+def download_book(download_url, book_name): 
+    try: 
+        r = requests.get(download_url, stream=True)
+        with open(book_name, 'wb') as f: 
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f'Successfully downloaded: {book_name}!')
+    except Exception as e: 
+        print(f'Error when downloading book from m5: {e}')
+
+def get_epub_contents(book, output_path):
+    with zipfile.ZipFile(book, "r") as z:
+        z.extractall(output_path)
+        return output_path
+
 
 # ── EPUB extraction ────────────────────────────────────────────────────────────
 
