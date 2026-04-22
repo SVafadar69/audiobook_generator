@@ -488,6 +488,18 @@ def organize_text_groq(texts: list[str]) -> str:
     )
     return completion.choices[0].message.content
 
+def embed_all_articles(articles, client, model='text-embedding-3-large'):
+    client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
+    response = client.embeddings.create(input=articles, model=model)
+    all_embeddings = np.array([item.embedding for item in response.data])  # (30, 3072)
+    centroid = np.mean(all_embeddings, axis=0)  # already a numpy array
+    scores = cosine_similarity([centroid], all_embeddings)[0]
+    indices = np.where(scores > 0.25)
+    cleaned_articles = articles[indices]
+    return cleaned_articles 
+
+
+
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
