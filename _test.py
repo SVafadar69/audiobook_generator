@@ -9,6 +9,7 @@ import tempfile
 import time
 import zipfile
 from datetime import date
+import numpy as np 
 
 # ── Third-party ────────────────────────────────────────────────────────────────
 import nest_asyncio
@@ -492,13 +493,24 @@ def embed_all_articles(articles, client, model='text-embedding-3-large'):
     client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
     response = client.embeddings.create(input=articles, model=model)
     all_embeddings = np.array([item.embedding for item in response.data])  # (30, 3072)
-    centroid = np.mean(all_embeddings, axis=0)  # already a numpy array
-    scores = cosine_similarity([centroid], all_embeddings)[0]
-    indices = np.where(scores > 0.25)
-    cleaned_articles = articles[indices]
-    return cleaned_articles 
+    return all_embeddings
+
+def join_embeddings(): 
+    all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
+    first_half_sentences = all_sentences[:len(all_sentences) / 2]
+    second_half_sentences = all_sentences[len(all_sentences) / 2:]
+    first_half_embeddings = embed_all_articles(first_half_sentences, client)
+    second_half_embeddings = embed_all_articles(second_half_sentences, client)
+    all_embeddings = np.concat((first_half_embeddings, second_half_embeddings), axis = 0)
+    return all_embeddings
 
 
+def filter_sentences(centroid_embedding, all_embeddings): # filter irrelevant sentences from each article -> return 
+    # all articles. or get mean of each article, then clean sentences + return article. 
+    all_sentence_scores = cosine_similarity([centroid_embedding], all_embeddings)[0]
+    relevant_sentences_indices = np.where(all_sentence_scores > 0.20)
+    cleaned_sentences = all_sentnces[relevant_sentences_indices]
+    return cleaned_sentences
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
