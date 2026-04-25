@@ -492,24 +492,29 @@ def organize_text_groq(texts: list[str]) -> str:
 def embed_all_articles(articles, client, model='text-embedding-3-large'):
     client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
     response = client.embeddings.create(input=articles, model=model)
-    all_embeddings = np.array([item.embedding for item in response.data])  # (30, 3072)
+    #all_embeddings = np.array([item.embedding for item in response.data])  # (30, 3072)
+    all_embeddings = [item.embedding for item in response.data]
+    print(type(all_embeddings))
+    print(type(all_embeddings[0]))
+    print(len(all_embeddings[0]))
     return all_embeddings
 
-def join_embeddings(): 
+def join_embeddings(texts, client): 
     all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
-    first_half_sentences = all_sentences[:len(all_sentences) / 2]
-    second_half_sentences = all_sentences[len(all_sentences) / 2:]
+    print(F'{len(all_sentences)}, {len(all_sentences) // 2}')
+    first_half_sentences = all_sentences[:(len(all_sentences) // 2)]
+    second_half_sentences = all_sentences[(len(all_sentences) // 2):]
     first_half_embeddings = embed_all_articles(first_half_sentences, client)
     second_half_embeddings = embed_all_articles(second_half_sentences, client)
     all_embeddings = np.concat((first_half_embeddings, second_half_embeddings), axis = 0)
     return all_embeddings
 
-
-def filter_sentences(centroid_embedding, all_embeddings): # filter irrelevant sentences from each article -> return 
+def filter_sentences(all_embeddings): # filter irrelevant sentences from each article -> return 
     # all articles. or get mean of each article, then clean sentences + return article. 
+    centroid_embedding = np.mean(all_embeddings, axis = 0)
     all_sentence_scores = cosine_similarity([centroid_embedding], all_embeddings)[0]
     relevant_sentences_indices = np.where(all_sentence_scores > 0.20)
-    cleaned_sentences = all_sentnces[relevant_sentences_indices]
+    cleaned_sentences = all_sentence_scores[relevant_sentences_indices]
     return cleaned_sentences
 
 

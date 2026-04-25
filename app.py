@@ -4,6 +4,15 @@ import os
 from PIL import Image
 from io import BytesIO
 import requests
+from datetime import date
+from dotenv import load_dotenv
+from exa_py import Exa
+from groq import Groq
+from openai import AsyncOpenAI, OpenAI
+
+load_dotenv()
+client = OpenAI(api_key = os.getenv('openai_api_key'))
+
 # from reserve import(
 #     get_download_url,
 #     parse_response, 
@@ -22,7 +31,10 @@ from _test import (
     retrieve_book,
     download_book,
     get_epub_contents,
-    route_response)
+    route_response, 
+    embed_all_articles, 
+    join_embeddings, 
+    filter_sentences)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -96,39 +108,48 @@ if search_query:
         book_name, author, file_type = ast.literal_eval(parse_response(search_query))
         results = retrieve_book(book_name, author, file_type)
         print(f'results: {results[0]}')
+
     elif ast.literal_eval(route_answer) == "article": 
-        results = make_exa_call(query = search_query)
-        print(f'articles: {results}')
-    cols = st.columns(len(results[:3]))
-    print(f'cols == {len(cols)} == number of valid books')
-    for col, book in zip(cols, results):
+        response = make_exa_call(query = search_query)
+        texts = [result.text for result in response.results]
+        print(f'texts: {texts}')
+        all_article_embeddings = join_embeddings(texts, client = client)
+        print(all_article_embeddings.shape)
+        cleaned_sentences = filter_sentences(all_article_embeddings)
+        print(f'{np.array(cleaned_sentences).shape}')
+        ### audio conversion 
+        #trim_chapter()
+
+    # cols = st.columns(len(results[:3]))
+    # print(f'cols == {len(cols)} == number of valid books')
+    # for col, book in zip(cols, results):
         # book_download_url = book.get('md5', '')
         # if book_download_url: 
         #     md5 = get_download_url(book_download_url)
         #     book_contents = download_book()
-        with col: 
-            title, author, img_url, date = book.get('title'), book.get('author'), book.get('imgUrl'), book.get('year')
-            print(title, author, img_url, date)
-            if title: 
-                col.markdown(f'**{title}**')
-            if author:
-                col.text(f"{author}")
-            if date: 
-                col.text(f"{date}")
+        # with col: 
+        #     title, author, img_url, date = book.get('title'), book.get('author'), book.get('imgUrl'), book.get('year')
+        #     print(title, author, img_url, date)
+        #     if title: 
+        #         col.markdown(f'**{title}**')
+        #     if author:
+        #         col.text(f"{author}")
+        #     if date: 
+        #         col.text(f"{date}")
 
-            st.markdown(
-                f"""
-                <div class="book-card">
-                    <a href="{title}" target="_blank">
-                        <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 4px;">{title}</div>
-                    </a>
-                    <a href="{title}" target="_blank">
-                        <div style="font-size: 0.95rem;">{author}</div>
-                    </a>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        #     st.markdown(
+        #         f"""
+        #         <div class="book-card">
+        #             <a href="{title}" target="_blank">
+        #                 <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 4px;">{title}</div>
+        #             </a>
+        #             <a href="{title}" target="_blank">
+        #                 <div style="font-size: 0.95rem;">{author}</div>
+        #             </a>
+        #         </div>
+        #         """,
+        #         unsafe_allow_html=True
+        #     )
 
 # online articles (exa api - links about X article), online web agent (do task on web get info), 
 # books (what you did) | exa article pulls -> LLM most capable at large contexts -> format into 
