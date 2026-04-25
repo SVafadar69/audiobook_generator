@@ -512,9 +512,9 @@ def filter_sentences(all_sentences, all_embeddings): # filter irrelevant sentenc
     from sklearn.metrics.pairwise import cosine_similarity 
     centroid_embedding = np.mean(all_embeddings, axis = 0)
     all_sentence_scores = cosine_similarity([centroid_embedding], all_embeddings)[0]
-    relevant_sentences_indices = np.where(all_sentence_scores > 0.20)
+    relevant_sentences_indices = [int(i) for i in np.where(all_sentence_scores > 0.30)[0]]
     print(f'relevant sentences indices: {relevant_sentences_indices}')
-    cleaned_sentences = all_sentences[relevant_sentences_indices]
+    cleaned_sentences = [all_sentences[i] for i in relevant_sentences_indices]
     return cleaned_sentences
 
 def article_to_audio(article_texts): 

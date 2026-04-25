@@ -117,10 +117,10 @@ if search_query:
         response = make_exa_call(query = search_query)
         texts = [result.text for result in response.results]
         all_sentences = all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
-        print(f'texts: {texts}')
+        print(f'{len(all_sentences)}')
         all_article_embeddings = join_embeddings(all_sentences, client = client)
         print(all_article_embeddings.shape)
-        cleaned_sentences = filter_sentences(all_article_embeddings)
+        cleaned_sentences = filter_sentences(all_sentences, all_article_embeddings)
         print(f'{np.array(cleaned_sentences).shape}')
         print(f'first sentence: {cleaned_sentences[0]}')
         article_to_audio(cleaned_sentences)
