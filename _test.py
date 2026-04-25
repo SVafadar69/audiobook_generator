@@ -499,9 +499,7 @@ def embed_all_articles(articles, client, model='text-embedding-3-large'):
     print(len(all_embeddings[0]))
     return all_embeddings
 
-def join_embeddings(texts, client): 
-    all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
-    print(F'{len(all_sentences)}, {len(all_sentences) // 2}')
+def join_embeddings(all_sentences, client):
     first_half_sentences = all_sentences[:(len(all_sentences) // 2)]
     second_half_sentences = all_sentences[(len(all_sentences) // 2):]
     first_half_embeddings = embed_all_articles(first_half_sentences, client)
@@ -509,13 +507,35 @@ def join_embeddings(texts, client):
     all_embeddings = np.concat((first_half_embeddings, second_half_embeddings), axis = 0)
     return all_embeddings
 
-def filter_sentences(all_embeddings): # filter irrelevant sentences from each article -> return 
+def filter_sentences(all_sentences, all_embeddings): # filter irrelevant sentences from each article -> return 
     # all articles. or get mean of each article, then clean sentences + return article. 
+    from sklearn.metrics.pairwise import cosine_similarity 
     centroid_embedding = np.mean(all_embeddings, axis = 0)
     all_sentence_scores = cosine_similarity([centroid_embedding], all_embeddings)[0]
     relevant_sentences_indices = np.where(all_sentence_scores > 0.20)
-    cleaned_sentences = all_sentence_scores[relevant_sentences_indices]
+    print(f'relevant sentences indices: {relevant_sentences_indices}')
+    cleaned_sentences = all_sentences[relevant_sentences_indices]
     return cleaned_sentences
+
+def article_to_audio(article_texts): 
+    article_indices = range(len(article_texts))
+    start_time = time.time()
+    for index, article in zip(article_indices, article_texts): 
+        article_dir = f'articles/article_number_{index}'
+        os.makedirs(article_dir, exist_ok=True)
+        chapter_chunks = trim_all_chapter(article) 
+        for chunk_index, chunk in enumerate(chapter_chunks): 
+            client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
+            response = client.audio.speech.create(
+                model = 'tts-1', 
+                voice = 'alloy', 
+                input = chunk
+            )
+            response.stream_to_file(f'{article_dir}/chunk_{chunk_index}.mp3')
+    print(F'one chapter took: {time.time() - start_time}')
+
+
+
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────

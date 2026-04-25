@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from exa_py import Exa
 from groq import Groq
 from openai import AsyncOpenAI, OpenAI
+import numpy as np
 
 load_dotenv()
 client = OpenAI(api_key = os.getenv('openai_api_key'))
@@ -34,7 +35,10 @@ from _test import (
     route_response, 
     embed_all_articles, 
     join_embeddings, 
-    filter_sentences)
+    filter_sentences,
+    trim_chapter, 
+    chapter_to_audio, 
+    article_to_audio)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -112,13 +116,14 @@ if search_query:
     elif ast.literal_eval(route_answer) == "article": 
         response = make_exa_call(query = search_query)
         texts = [result.text for result in response.results]
+        all_sentences = all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
         print(f'texts: {texts}')
-        all_article_embeddings = join_embeddings(texts, client = client)
+        all_article_embeddings = join_embeddings(all_sentences, client = client)
         print(all_article_embeddings.shape)
         cleaned_sentences = filter_sentences(all_article_embeddings)
         print(f'{np.array(cleaned_sentences).shape}')
-        ### audio conversion 
-        #trim_chapter()
+        print(f'first sentence: {cleaned_sentences[0]}')
+        article_to_audio(cleaned_sentences)
 
     # cols = st.columns(len(results[:3]))
     # print(f'cols == {len(cols)} == number of valid books')
