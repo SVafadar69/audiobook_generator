@@ -480,7 +480,7 @@ def groq_route_response(user_input: str) -> str:
         temperature=0.1,
         max_completion_tokens=4096,
         top_p=0.95,
-        reasoning_effort="default",
+        reasoning_effort="low",
     )
     return completion.choices[0].message.content
 
