@@ -505,7 +505,7 @@ def organize_text_groq(texts: list[str]) -> str:
     )
     return completion.choices[0].message.content
 
-def embed_all_articles(articles, client, model='text-embedding-3-large'):
+def embed_all_articles(articles, client, model='text-embedding-3-small'):
     client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
     response = client.embeddings.create(input=articles, model=model)
     #all_embeddings = np.array([item.embedding for item in response.data])  # (30, 3072)
