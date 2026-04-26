@@ -533,8 +533,7 @@ def filter_sentences(all_sentences, all_embeddings): # filter irrelevant sentenc
     cleaned_sentences = [all_sentences[i] for i in relevant_sentences_indices]
     return cleaned_sentences
 
-def articles_to_audio(article_texts): 
-    one_article = " ".join(article_texts)
+def articles_to_audio(article_texts):
     article_indices = range(len(article_texts))
     start_time = time.time()
     for index, article in zip(article_indices, article_texts): 
@@ -551,6 +550,55 @@ def articles_to_audio(article_texts):
             response.stream_to_file(f'{article_dir}/chunk_{chunk_index}.mp3')
     print(F'one chapter took: {time.time() - start_time}')
 
+def combine_articles_into_one(audio_chunks,
+    chapters: list[str],
+    audiobook_dir: str,
+    chapter_audiobooks_folder: str,
+) -> None:
+    """Concatenate per-chunk mp3s into one mp3 per chapter via ffmpeg."""
+    for chapter in chapters:
+        chunks = os.listdir(os.path.join(audiobook_dir, chapter))
+        sorted_chunks = sorted(chunks, key=lambda x: int(re.search(r"\d+", x).group()))
+        final_chunks = [os.path.join(audiobook_dir, chapter, c) for c in sorted_chunks]
+        concat_str = "|".join(final_chunks)
+        chapter_output_path = os.path.join(chapter_audiobooks_folder, f"{chapter}_audiobook.mp3")
+        subprocess.run(["ffmpeg", "-i", f"concat:{concat_str}", "-acodec", "copy", chapter_output_path])
+
+async def generate_articles_audiobook(
+    chapter_indices: list[int],
+    chapter_texts: list[str],
+) -> None:
+    """
+    Async audiobook generator. Attempts to fire all chunks for a chapter
+    concurrently; falls back to batches of 10 on failure.
+    """
+    start_time = time.time()
+    for index, chapter in zip(chapter_indices, chapter_texts):
+        chapter_dir = f"articles/audiobook"
+        os.makedirs(chapter_dir, exist_ok=True)
+        chapter_chunks = trim_all_chapter(chapter_text)
+
+        all_tasks = [
+            _save_chunk(chapter_dir, chunk_index, chunk)
+            for chunk_index, chunk in enumerate(chapter_chunks)
+        ]
+        try:
+            await asyncio.gather(*all_tasks)
+            print(f"Chapter {index} — all {len(chapter_chunks)} chunk(s) done.")
+        except Exception as e:
+            print(f"Chapter {index} — full batch failed ({e}), falling back to batches of 10.")
+            for batch_start in range(0, len(chapter_chunks), 10):
+                batch = [
+                    _save_chunk(chapter_dir, chunk_index, chunk)
+                    for chunk_index, chunk in enumerate(
+                        chapter_chunks[batch_start : batch_start + 10],
+                        start=batch_start,
+                    )
+                ]
+                await asyncio.gather(*batch)
+                print(f"Chapter {index} — fallback batch {batch_start}–{batch_start + len(batch) - 1} done.")
+
+        print(f"Chapter {index} complete — {len(chapter_chunks)} chunk(s), {time.time() - start_time:.1f}s elapsed.")
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
