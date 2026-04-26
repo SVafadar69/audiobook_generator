@@ -14,7 +14,7 @@ import numpy as np
 # ── Third-party ────────────────────────────────────────────────────────────────
 import nest_asyncio
 
-import subprocess, sys; 
+import subprocess, sys
 subprocess.check_call([sys.executable, "-m", "pip", "install", "tiktoken", "beautifulsoup4", "python-dotenv", "exa-py", "groq", "openai"])
 
 import tiktoken
