@@ -473,7 +473,7 @@ def groq_route_response(user_input: str) -> str:
     
     client = Groq(api_key=groq_api_key)
     completion = client.chat.completions.create(
-        model="qwen/qwen3-32b",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": formatted_prompt},
         ],
