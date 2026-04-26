@@ -38,7 +38,8 @@ from _test import (
     filter_sentences,
     trim_chapter, 
     chapter_to_audio, 
-    article_to_audio)
+    article_to_audio, 
+    groq_route_response)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -106,7 +107,8 @@ st.markdown("<h1 style='text-align: center; font-size: 3.5rem; padding-bottom: 2
 # The Search Bar
 search_query = st.text_input("Enter in any book. Include author and extension type (pdf, .epub) if you can.", placeholder="Search...")
 if search_query:
-    route_answer = route_response(search_query)
+    route_answer = groq_route_response(search_query)
+
     print(f'route_answer: {route_answer}')
     if ast.literal_eval(route_answer) == "book": 
         book_name, author, file_type = ast.literal_eval(parse_response(search_query))

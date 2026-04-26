@@ -461,6 +461,29 @@ def organize_text(texts: list[str]) -> str:
     )
     return response.output_text
 
+def groq_route_response(user_input: str) -> str: 
+    system_prompt = '''Your job is to determine based on the user input if they are inquiring
+    about a book, or want to research something using articles. Your response should be ONLY one of: 
+    "article" or "book" in double quotes. All in lowercase. Do not return anything else except one of those two responses.
+    
+    User query: {user_input}
+    Your response: '''
+    # Format the prompt correctly using .format() instead of f-string with replace
+    formatted_prompt = system_prompt.format(user_input=user_input)
+    
+    client = Groq(api_key=groq_api_key)
+    completion = client.chat.completions.create(
+        model="qwen/qwen3-32b",
+        messages=[
+            {"role": "system", "content": formatted_prompt},
+        ],
+        temperature=0.1,
+        max_completion_tokens=4096,
+        top_p=0.95,
+        reasoning_effort="default",
+    )
+    return completion.choices[0].message.content
+
 
 def organize_text_groq(texts: list[str]) -> str:
     """Arrange a list of text corpuses into a single linearly coherent string via Groq."""
@@ -510,7 +533,8 @@ def filter_sentences(all_sentences, all_embeddings): # filter irrelevant sentenc
     cleaned_sentences = [all_sentences[i] for i in relevant_sentences_indices]
     return cleaned_sentences
 
-def article_to_audio(article_texts): 
+def articles_to_audio(article_texts): 
+    one_article = " ".join(article_texts)
     article_indices = range(len(article_texts))
     start_time = time.time()
     for index, article in zip(article_indices, article_texts): 
@@ -526,8 +550,6 @@ def article_to_audio(article_texts):
             )
             response.stream_to_file(f'{article_dir}/chunk_{chunk_index}.mp3')
     print(F'one chapter took: {time.time() - start_time}')
-
-
 
 
 
