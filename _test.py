@@ -13,7 +13,7 @@ import numpy as np
 
 # ── Third-party ────────────────────────────────────────────────────────────────
 import nest_asyncio
-import tiktoken
+#import tiktoken
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from exa_py import Exa
@@ -445,10 +445,10 @@ def make_exa_call_summary(
 
 # ── Token counting ─────────────────────────────────────────────────────────────
 
-def token_counter(texts: str, system_prompt: str) -> int:
-    """Return the combined token count of system_prompt + texts for gpt-4o encoding."""
-    enc = tiktoken.encoding_for_model("gpt-4o")
-    return len(enc.encode(system_prompt) + enc.encode(texts))
+# def token_counter(texts: str, system_prompt: str) -> int:
+#     """Return the combined token count of system_prompt + texts for gpt-4o encoding."""
+#     enc = tiktoken.encoding_for_model("gpt-4o")
+#     return len(enc.encode(system_prompt) + enc.encode(texts))
 
 
 # ── Text organisation ──────────────────────────────────────────────────────────
