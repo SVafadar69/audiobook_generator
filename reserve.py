@@ -3,6 +3,11 @@
 
 # In[9]:
 
+# def token_counter(texts: str, system_prompt: str) -> int:
+#     """Return the combined token count of system_prompt + texts for gpt-4o encoding."""
+#     enc = tiktoken.encoding_for_model("gpt-4o")
+#     return len(enc.encode(system_prompt) + enc.encode(texts))
+
 
 book = '/Users/sv/Downloads/ai_warface.epub'
 import zipfile, os
@@ -29,6 +34,9 @@ import requests
 book = '/Users/sv/Downloads/ai_warface.epub'
 rapidai_api_key = os.getenv('rapidai_api_key')
 openai_api_key = os.getenv('openai_api_key')
+
+#import tiktoken
+
 
 def parse_response(user_input: str):
     """
