@@ -38,7 +38,7 @@ from _test import (
     filter_sentences,
     trim_chapter, 
     chapter_to_audio, 
- 
+    articles_to_audio,
     groq_route_response)
 
 first_downloaded_save_path = os.getcwd()
@@ -125,7 +125,7 @@ if search_query:
         cleaned_sentences = filter_sentences(all_sentences, all_article_embeddings)
         print(f'{np.array(cleaned_sentences).shape}')
         print(f'first sentence: {cleaned_sentences[0]}')
-        article_to_audio(cleaned_sentences)
+        articles_to_audio(cleaned_sentences)
 
     # cols = st.columns(len(results[:3]))
     # print(f'cols == {len(cols)} == number of valid books')
