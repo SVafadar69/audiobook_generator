@@ -11,6 +11,8 @@ from groq import Groq
 from openai import AsyncOpenAI, OpenAI
 import numpy as np
 
+from reserve import cleaned_text
+
 load_dotenv()
 client = OpenAI(api_key = os.getenv('openai_api_key'))
 
@@ -39,7 +41,9 @@ from _test import (
     trim_chapter, 
     chapter_to_audio, 
     articles_to_audio,
-    groq_route_response)
+    groq_route_response,
+    clean_for_tts, 
+    play_text)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -118,14 +122,17 @@ if search_query:
     elif ast.literal_eval(route_answer) == "article": 
         response = make_exa_call(query = search_query)
         texts = [result.text for result in response.results]
-        all_sentences = all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
+        all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
         print(f'{len(all_sentences)}')
         all_article_embeddings = join_embeddings(all_sentences, client = client)
         print(all_article_embeddings.shape)
         cleaned_sentences = filter_sentences(all_sentences, all_article_embeddings)
         print(f'{np.array(cleaned_sentences).shape}')
         print(f'first sentence: {cleaned_sentences[0]}')
-        articles_to_audio(cleaned_sentences)
+        all_articles_text = clean_for_tts(". ".join(cleaned_sentences))
+        play_text(all_articles_text)
+        
+        #articles_to_audio(cleaned_sentences)
 
     # cols = st.columns(len(results[:3]))
     # print(f'cols == {len(cols)} == number of valid books')

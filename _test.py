@@ -10,6 +10,7 @@ import time
 import zipfile
 from datetime import date
 import numpy as np 
+import pyttsx3
 
 # ── Third-party ────────────────────────────────────────────────────────────────
 import nest_asyncio
@@ -46,6 +47,163 @@ def load_api_key():
     openai_api_key = os.getenv('openai_api_key')
     rapidai_api_key = os.getenv('rapidai_api_key')
     return openai_api_key, rapidai_api_key
+
+
+def clean_for_tts(text: str) -> str:
+    """
+    Cleans a string for natural TTS pronunciation via pyttsx3.
+    Apply transformations in order — sequence matters.
+    """
+
+    # -------------------------
+    # 1. URLS & EMAILS (do first, before symbol stripping breaks them)
+    # -------------------------
+    text = re.sub(r'https?://\S+', 'a web link', text)
+    text = re.sub(r'www\.\S+', 'a web link', text)
+    text = re.sub(r'[\w.\-]+@[\w.\-]+\.\w+', 'an email address', text)
+
+    # -------------------------
+    # 2. CODE-STYLE PATTERNS (before underscore/camel stripping)
+    # -------------------------
+    # snake_case → "snake case"
+    text = re.sub(r'\b([a-z]+)_([a-z]+)', lambda m: m.group(0).replace('_', ' '), text)
+
+    # CamelCase → "Camel Case"
+    text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+
+    # -------------------------
+    # 3. CURRENCY
+    # -------------------------
+    text = re.sub(r'\$(\d+\.\d{2})', r'\1 dollars', text)        # $19.99 → 19.99 dollars
+    text = re.sub(r'\$(\d+)', r'\1 dollars', text)                # $20 → 20 dollars
+    text = re.sub(r'£(\d+)', r'\1 pounds', text)
+    text = re.sub(r'€(\d+)', r'\1 euros', text)
+
+    # -------------------------
+    # 4. PERCENTAGES & NUMBERS
+    # -------------------------
+    text = re.sub(r'(\d+)%', r'\1 percent', text)                 # 50% → 50 percent
+
+    # Ordinals: 1st, 2nd, 3rd, 4th → first, second, third, fourth
+    ordinals = {
+        '1st': 'first', '2nd': 'second', '3rd': 'third', '4th': 'fourth',
+        '5th': 'fifth', '6th': 'sixth', '7th': 'seventh', '8th': 'eighth',
+        '9th': 'ninth', '10th': 'tenth', '11th': 'eleventh', '12th': 'twelfth',
+    }
+    for numeral, word in ordinals.items():
+        text = re.sub(rf'\b{numeral}\b', word, text, flags=re.IGNORECASE)
+
+    # Number ranges: 10-20 → 10 to 20
+    text = re.sub(r'(\d+)-(\d+)', r'\1 to \2', text)
+
+    # Large numbers: 1000000 → 1,000,000 so the engine reads it better
+    # (Most engines handle comma-formatted numbers better)
+    def format_large_number(m):
+        return f"{int(m.group(0)):,}"
+    text = re.sub(r'\b\d{5,}\b', format_large_number, text)
+
+    # -------------------------
+    # 5. COMMON SYMBOLS → WORDS
+    # -------------------------
+    symbol_map = {
+        '&':  ' and ',
+        '@':  ' at ',
+        '#':  ' number ',
+        '*':  ' ',
+        '_':  ' ',
+        '~':  ' ',
+        '^':  ' ',
+        '|':  ' ',
+        '\\': ' ',
+        '`':  ' ',
+        '+':  ' plus ',
+        '=':  ' equals ',
+        '<':  ' less than ',
+        '>':  ' greater than ',
+    }
+    for symbol, replacement in symbol_map.items():
+        text = text.replace(symbol, replacement)
+
+    # -------------------------
+    # 6. ABBREVIATIONS & TITLES
+    # -------------------------
+    abbreviations = {
+        r'\bDr\.':   'Doctor',
+        r'\bMr\.':   'Mister',
+        r'\bMrs\.':  'Missus',
+        r'\bMs\.':   'Miss',
+        r'\bProf\.': 'Professor',
+        r'\bSt\.':   'Saint',       # or 'Street' depending on context
+        r'\bAve\.':  'Avenue',
+        r'\bBlvd\.': 'Boulevard',
+        r'\betc\.':  'etcetera',
+        r'\be\.g\.': 'for example',
+        r'\bi\.e\.': 'that is',
+        r'\bvs\.':   'versus',
+        r'\bapprox\.': 'approximately',
+    }
+    for pattern, replacement in abbreviations.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+    # -------------------------
+    # 7. ACRONYMS (add spaces so engine spells them out cleanly)
+    # -------------------------
+    # Known pronounceable acronyms — leave as-is
+    pronounceable = {'NASA', 'NATO', 'UNESCO', 'UNICEF', 'RADAR', 'LASER', 'GIF', 'JPEG'}
+
+    def expand_acronym(m):
+        word = m.group(0)
+        if word.upper() in pronounceable:
+            return word
+        # Spell it out: "API" → "A P I"
+        return ' '.join(list(word.upper()))
+
+    text = re.sub(r'\b[A-Z]{2,6}\b', expand_acronym, text)
+
+    # -------------------------
+    # 8. PUNCTUATION CLEANUP
+    # -------------------------
+    # Smart/curly quotes → straight quotes (engine handles these poorly)
+    text = text.replace('\u2018', "'").replace('\u2019', "'")   # ' '
+    text = text.replace('\u201c', '"').replace('\u201d', '"')   # " "
+
+    # Em dash / en dash → pause (comma works well for TTS pacing)
+    text = text.replace('\u2014', ', ')   # em dash —
+    text = text.replace('\u2013', ' to ') # en dash –  (often used in ranges)
+
+    # Ellipsis → pause
+    text = text.replace('...', ', ')
+    text = text.replace('\u2026', ', ')   # Unicode ellipsis …
+
+    # Bullet points / list markers
+    text = re.sub(r'^\s*[-•–]\s+', '', text, flags=re.MULTILINE)
+
+    # Strip leftover markdown
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)   # **bold**
+    text = re.sub(r'\*(.*?)\*',     r'\1', text)   # *italic*
+    text = re.sub(r'__(.*?)__',     r'\1', text)   # __bold__
+    text = re.sub(r'_(.*?)_',       r'\1', text)   # _italic_
+    text = re.sub(r'^#{1,6}\s+',    '',    text, flags=re.MULTILINE)  # # Headings
+
+    # -------------------------
+    # 9. WHITESPACE CLEANUP (always last)
+    # -------------------------
+    text = re.sub(r'[ \t]+', ' ', text)      # Collapse multiple spaces
+    text = re.sub(r'\n{2,}', '. ', text)     # Paragraph breaks → spoken pause
+    text = re.sub(r'\n', ' ', text)          # Single newlines → space
+    text = text.strip()
+
+    return text
+
+def play_text(cleaned_text):
+
+    engine = pyttsx3.init()
+
+    engine.setProperty('rate', 180)
+    engine.setProperty('volume', 1.0)
+
+    engine.say(cleaned_text)
+    engine.runAndWait()
 
 def route_response(user_input: str):
     """
