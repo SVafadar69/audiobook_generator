@@ -205,6 +205,25 @@ def play_text(cleaned_text):
     engine.say(cleaned_text)
     engine.runAndWait()
 
+async def kokoro_stream():
+    kokoro = Kokoro(onnx_file, voices_file)
+
+    stream = kokoro.create_stream(
+        text,
+        voice="af_nicole",
+        speed=1.5,
+        lang="en-us",
+    )
+
+    with sf.SoundFile('audio.wav', mode = 'w', samplerate=SAMPLE_RATE, channels=1) as f:
+        count = 0
+        async for samples, sample_rate in stream:
+            count += 1
+            print(f"Playing audio stream ({count})...")
+            sd.play(samples, sample_rate)
+            sd.wait()
+            f.write(samples)
+
 def route_response(user_input: str):
     """
     Deconstruct user query to extract book_name, author, and file_type.
