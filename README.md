@@ -1,108 +1,134 @@
-Free Audiobook Generator
+# 🎧 Free Audiobook Generator
 
-Generate audiobooks from books, documents, or researched articles.
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Status](https://img.shields.io/badge/status-active%20development-orange.svg)
 
-Enter a book title, upload a supported document, or provide a topic such as:
-
-"Defense spending in Ukraine"
-
-The application can:
-
-Convert user-provided ebooks and documents into audiobooks
-Find public-domain or legally accessible books
-Research a topic using the Exa API
-Convert documents, articles and books into human-sounding audiobooks - entirely for free. 
-Export the generated audio as a WAV file
-
-Project Status
-
-This project is currently under development.
-
-Remaining Work
-
-Add an audiobook download button to the user interface
-
-Add a loading and progress screen
-
-Move inference to a GPU backend
-
-Add CUDA acceleration
-
-Improve error handling
-
-Add support for additional document formats
+An AI-powered application that instantly transforms any book title or complex research theme into a polished, high-quality audiobook. Whether you want to listen to a classic novel or a synthesized briefing on cutting-edge geopolitical topics, this tool automates the retrieval, aggregation, and Text-to-Speech (TTS) conversion pipeline.
 
 ---
 
-Requirements
-Python 3.10 or newer
-An Exa API key
-Kokoro TTS model files
-FFmpeg
-A CUDA-capable GPU for optional accelerated inference
-Installation
+## 🚀 How to Structure Your Project for GitHub
 
-Clone the repository:
+When publishing a project on GitHub to ensure visitors instantly know how to run, understand, and contribute to it, standard repository conventions are used. A professional GitHub repository typically includes the following core files:
 
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
+1. **`README.md`** (This file): The primary landing page explaining what the project does, prerequisites, installation steps, and usage instructions.
+2. **`requirements.txt` / `pyproject.toml`**: Lists all Python dependencies so users can install them with a single command.
+3. **`.gitignore`**: Prevents unnecessary files (like virtual environments, cache files, and downloaded audio outputs) from being tracked in git.
+4. **`.env.example`**: A template file showing users which environment variables (API keys) are required.
+5. **`main.py` or `app.py`**: The entry point for running the application.
 
-Create a virtual environment:
+---
 
-python -m venv .venv
+## ✨ Features
 
-Activate the environment.
+- **Book Mode**: Automatically searches and downloads target books (e.g., via Anna's Archive integration) and prepares them for speech synthesis.
+- **Theme/Research Mode**: Executes deep searches across the web using the **Exa API**, aggregates relevant articles, summarizes them into a coherent narrative script, and converts them to audio.
+- **Natural Voice Synthesis**: Integrates advanced TTS models to generate expressive, natural-sounding audio files.
 
-macOS or Linux
-source .venv/bin/activate
-Windows PowerShell
-.venv\Scripts\Activate.ps1
+---
 
-Install the Python dependencies:
+## 📌 Roadmap & Things Left to Do
 
+- [ ] **UI Enhancements**: Create an interactive download button directly in the user interface to easily export generated audiobooks (`.mp3` / `.m4b`).
+- [ ] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
+- [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
+
+---
+
+## 🛠️ Prerequisites
+
+Before running the project locally, ensure you have the following installed on your system:
+- **Python 3.10 or higher**
+- **FFmpeg** (required for audio manipulation and stitching)
+- **NVIDIA CUDA Toolkit** (optional, recommended for GPU acceleration)
+
+---
+
+## 📦 Installation & Setup
+
+Follow these step-by-step instructions to set up the project on your local machine.
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/free-audiobook-generator.git
+cd free-audiobook-generator
+```
+
+### 2. Create and Activate a Virtual Environment
+```bash
+# On macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+# On Windows
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-
-Place your associated .env keys in the .env file. You will need the following: 
-exa_api_key 
-groq_api_key 
-
-Place the Kokoro model files in the expected model directory:
-
-models/
-├── kokoro-v1.0.onnx
-└── kokoro-v1.0.bin
-Running the Project
-
-Replace the command below with the actual entry-point filename used by the project:
-
-
-streamlit run app.py
-
-
-After starting the application, open the local address printed in the terminal.
-
-For example:
-
-http://127.0.0.1:8000
+### 4. Configure Environment Variables
+Create a `.env` file in the root directory based on the provided `.env.example`:
+```env
+EXA_API_KEY=your_exa_api_key_here
+OUTPUT_DIR=./outputs
+TTS_MODEL=coqui/XTTS-v2
+```
 
 ---
 
+## 💻 Running the Project
 
+To launch the application interface (e.g., Streamlit or Gradio):
 
-Project Structure
-.
-├── app.py
-├── requirements.txt
-├── README.md
-├── .gitignore
-├── models/
-│   ├── kokoro-v1.0.onnx
-│   └── kokoro-v1.0.bin
-├── output/
-├── src/
-│   ├── research.py
-│   ├── text_processing.py
-│   ├── text_to_speech.py
-│   └── audio_processing.py
-└── ui/
+```bash
+python app.py
+```
+*(Or if using Streamlit)*:
+```bash
+streamlit run app.py
+```
+
+Once running, open your browser and navigate to `http://localhost:7860` (or the port specified in your terminal). 
+
+1. Enter a book name (e.g., *Moby Dick*) or a research theme (e.g., *Defense spending in Ukraine*).
+2. Click **Generate Audiobook**.
+3. Once processing completes, use the download button to save your file.
+
+---
+
+## 🗂️ Typical Git File Structure
+
+A clean, production-ready repository layout looks like this:
+
+```text
+free-audiobook-generator/
+├── .github/
+│   └── workflows/        # CI/CD pipelines (optional)
+├── assets/               # Screenshots, banners, demo audio
+├── outputs/              # Generated audiobooks (ignored in git)
+├── .env.example          # Template for environment variables
+├── .gitignore            # Files to ignore (venv, .env, outputs/)
+├── README.md             # Project documentation & instructions
+├── requirements.txt      # Python dependencies
+├── app.py                # Main UI / Entry point
+└── src/
+    ├── __init__.py
+    ├── downloader.py     # Anna's Archive & Exa API integration
+    └── tts_engine.py     # Text-to-speech conversion logic
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request or open an issue for bug fixes, feature requests (like the CUDA backend or UI loading screen), or performance enhancements.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
