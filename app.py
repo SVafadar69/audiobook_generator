@@ -10,11 +10,17 @@ from exa_py import Exa
 from groq import Groq
 from openai import AsyncOpenAI, OpenAI
 import numpy as np
+import asyncio
+import soundfile as sf 
+import sounddevice as sd
 
-from reserve import cleaned_text
+#from reserve import cleaned_text
 
 load_dotenv()
 client = OpenAI(api_key = os.getenv('openai_api_key'))
+
+onnx_file = 'models/kokoro-v1.0.onnx'
+voices_file = 'models/voices-v1.0.bin'
 
 # from reserve import(
 #     get_download_url,
@@ -43,7 +49,8 @@ from _test import (
     articles_to_audio,
     groq_route_response,
     clean_for_tts, 
-    play_text)
+    play_text,
+    kokoro_stream)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -130,8 +137,16 @@ if search_query:
         print(f'{np.array(cleaned_sentences).shape}')
         print(f'first sentence: {cleaned_sentences[0]}')
         all_articles_text = clean_for_tts(". ".join(cleaned_sentences))
-        play_text(all_articles_text)
-        
+        with open('all_articles_text.txt', 'w', encoding='utf-8') as file: 
+            file.write(all_articles_text)
+        print(f'all articles text: {type(all_articles_text)}')
+        #write_out_kokoro()
+        if __name__ == "__main__":
+            asyncio.run(
+                kokoro_stream(all_articles_text, onnx_file, voices_file)
+            )
+
+        #play_text(all_articles_text)
         #articles_to_audio(cleaned_sentences)
 
     # cols = st.columns(len(results[:3]))

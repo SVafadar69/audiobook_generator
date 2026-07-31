@@ -11,6 +11,8 @@ import zipfile
 from datetime import date
 import numpy as np 
 import pyttsx3
+import soundfile as sf 
+import sounddevice as sd 
 
 # ── Third-party ────────────────────────────────────────────────────────────────
 import nest_asyncio
@@ -19,9 +21,13 @@ from dotenv import load_dotenv
 from exa_py import Exa
 from groq import Groq
 from openai import AsyncOpenAI, OpenAI
+from kokoro_onnx import Kokoro
+from kokoro import KPipeline
 
 # ── Environment ────────────────────────────────────────────────────────────────
 load_dotenv()
+
+SAMPLE_RATE = 24000
 
 openai_api_key = os.getenv("openai_api_key")
 groq_api_key   = os.getenv("groq_api_key")
@@ -47,6 +53,8 @@ def load_api_key():
     openai_api_key = os.getenv('openai_api_key')
     rapidai_api_key = os.getenv('rapidai_api_key')
     return openai_api_key, rapidai_api_key
+
+
 
 
 def clean_for_tts(text: str) -> str:
@@ -108,7 +116,7 @@ def clean_for_tts(text: str) -> str:
     symbol_map = {
         '&':  ' and ',
         '@':  ' at ',
-        '#':  ' number ',
+        '#':  ' ',
         '*':  ' ',
         '_':  ' ',
         '~':  ' ',
@@ -205,12 +213,12 @@ def play_text(cleaned_text):
     engine.say(cleaned_text)
     engine.runAndWait()
 
-async def kokoro_stream():
+async def kokoro_stream(text, onnx_file, voices_file):
     kokoro = Kokoro(onnx_file, voices_file)
 
     stream = kokoro.create_stream(
         text,
-        voice="af_nicole",
+        voice="af_heart",
         speed=1.5,
         lang="en-us",
     )
@@ -220,9 +228,10 @@ async def kokoro_stream():
         async for samples, sample_rate in stream:
             count += 1
             print(f"Playing audio stream ({count})...")
-            sd.play(samples, sample_rate)
-            sd.wait()
+            #sd.play(samples, sample_rate)
+            #sd.wait()
             f.write(samples)
+            #sf.write(f'audiobook_full/Book_{count}.wav', samples, sample_rate)
 
 def route_response(user_input: str):
     """
@@ -726,6 +735,11 @@ def articles_to_audio(article_texts):
             )
             response.stream_to_file(f'{article_dir}/chunk_{chunk_index}.mp3')
     print(F'one chapter took: {time.time() - start_time}')
+
+def write_out_kokoro(text: str, voice: str = 'models/voices-v1.0.bin', speed = 1.25) -> None: 
+    generator = pipeline(text = text, voice = voice, speed = speed)
+    for i, (gs, ps, audio) in enumerate(generator):
+        sf.write(f'{i}.wav', audio, 24000)
 
 def combine_articles_into_one(audio_chunks,
     chapters: list[str],
