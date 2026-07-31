@@ -4,19 +4,9 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Status](https://img.shields.io/badge/status-active%20development-orange.svg)
 
-An AI-powered application that instantly transforms any book title or complex research theme into a polished, high-quality audiobook. Whether you want to listen to a classic novel or a synthesized briefing on cutting-edge geopolitical topics, this tool automates the retrieval, aggregation, and Text-to-Speech (TTS) conversion pipeline.
+AI-powered audiobook generator. Enter the title of a book, or a concept you want to learn about (i.e. defense spending in Ukraine), and a human-sounding audiobook will be generated for you for free. 
 
----
-
-## 🚀 How to Structure Your Project for GitHub
-
-When publishing a project on GitHub to ensure visitors instantly know how to run, understand, and contribute to it, standard repository conventions are used. A professional GitHub repository typically includes the following core files:
-
-1. **`README.md`** (This file): The primary landing page explaining what the project does, prerequisites, installation steps, and usage instructions.
-2. **`requirements.txt` / `pyproject.toml`**: Lists all Python dependencies so users can install them with a single command.
-3. **`.gitignore`**: Prevents unnecessary files (like virtual environments, cache files, and downloaded audio outputs) from being tracked in git.
-4. **`.env.example`**: A template file showing users which environment variables (API keys) are required.
-5. **`main.py` or `app.py`**: The entry point for running the application.
+Use the Anna's Archive or Exa API for content curation, and Kokoro-ONNX for TTS generation of the audiobook. 
 
 ---
 
@@ -26,13 +16,6 @@ When publishing a project on GitHub to ensure visitors instantly know how to run
 - **Theme/Research Mode**: Executes deep searches across the web using the **Exa API**, aggregates relevant articles, summarizes them into a coherent narrative script, and converts them to audio.
 - **Natural Voice Synthesis**: Integrates advanced TTS models to generate expressive, natural-sounding audio files.
 
----
-
-## 📌 Roadmap & Things Left to Do
-
-- [ ] **UI Enhancements**: Create an interactive download button directly in the user interface to easily export generated audiobooks (`.mp3` / `.m4b`).
-- [ ] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
-- [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
 
 ---
 
@@ -68,7 +51,6 @@ venv\Scripts\activate
 
 ### 3. Install Dependencies
 ```bash
-pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -76,8 +58,7 @@ pip install -r requirements.txt
 Create a `.env` file in the root directory based on the provided `.env.example`:
 ```env
 EXA_API_KEY=your_exa_api_key_here
-OUTPUT_DIR=./outputs
-TTS_MODEL=coqui/XTTS-v2
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 ---
@@ -87,48 +68,41 @@ TTS_MODEL=coqui/XTTS-v2
 To launch the application interface (e.g., Streamlit or Gradio):
 
 ```bash
-python app.py
-```
-*(Or if using Streamlit)*:
-```bash
 streamlit run app.py
 ```
 
-Once running, open your browser and navigate to `http://localhost:7860` (or the port specified in your terminal). 
+Once running, open your browser and navigate to `http://localhost:` (or the port specified in your terminal). 
 
 1. Enter a book name (e.g., *Moby Dick*) or a research theme (e.g., *Defense spending in Ukraine*).
-2. Click **Generate Audiobook**.
-3. Once processing completes, use the download button to save your file.
+2. Click **Generate Audiobook** or press ENTER.
+3. Once processing completes, view the completed audiobook in your project.
 
 ---
 
-## 🗂️ Typical Git File Structure
-
-A clean, production-ready repository layout looks like this:
+## 🗂️ Folder Structure
 
 ```text
-free-audiobook-generator/
-├── .github/
-│   └── workflows/        # CI/CD pipelines (optional)
-├── assets/               # Screenshots, banners, demo audio
+audiobook-generator/
+├── models/               # Where the voice + engine files are stored
 ├── outputs/              # Generated audiobooks (ignored in git)
-├── .env.example          # Template for environment variables
-├── .gitignore            # Files to ignore (venv, .env, outputs/)
+├── .env         # Where your .env files are stored
 ├── README.md             # Project documentation & instructions
+├── audio.wav             # This will be your generated audiobook. 
 ├── requirements.txt      # Python dependencies
 ├── app.py                # Main UI / Entry point
-└── src/
-    ├── __init__.py
-    ├── downloader.py     # Anna's Archive & Exa API integration
-    └── tts_engine.py     # Text-to-speech conversion logic
+├── test.py                # Helper functions that contain all relevant audiobook generation functions 
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request or open an issue for bug fixes, feature requests (like the CUDA backend or UI loading screen), or performance enhancements.
+You are welcome to contribute to the project. The remaining features are: 
+---
 
-## 📄 License
+## 📌 Roadmap & Things Left to Do
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- [ ] **UI Enhancements**: Create a download button in the user interface to export generated audiobooks. Right now they are being written within the project folder locally. 
+- [ ] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
+- [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
+---
