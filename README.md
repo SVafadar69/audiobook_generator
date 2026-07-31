@@ -57,8 +57,8 @@ pip install -r requirements.txt
 ### 4. Configure Environment Variables
 Create a `.env` file in the root directory based on the provided `.env.example`:
 ```env
-EXA_API_KEY=your_exa_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
+exa_api_key=your_exa_api_key_here
+groq_api_key=your_groq_api_key_here
 ```
 
 ---
@@ -85,19 +85,19 @@ Once running, open your browser and navigate to `http://localhost:` (or the port
 audiobook-generator/
 ├── models/               # Where the voice + engine files are stored
 ├── outputs/              # Generated audiobooks (ignored in git)
-├── .env         # Where your .env files are stored
+├── .env                  # Where your .env files are stored
 ├── README.md             # Project documentation & instructions
 ├── audio.wav             # This will be your generated audiobook. 
 ├── requirements.txt      # Python dependencies
 ├── app.py                # Main UI / Entry point
-├── test.py                # Helper functions that contain all relevant audiobook generation functions 
+├── test.py               # Helper functions that contain all relevant audiobook generation functions 
 ```
 
 ---
 
 ## 🤝 Contributing
 
-You are welcome to contribute to the project. The remaining features are: 
+You are welcome to contribute to the project. The remaining needed features are: 
 ---
 
 ## 📌 Roadmap & Things Left to Do
