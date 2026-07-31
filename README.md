@@ -34,8 +34,8 @@ Follow these step-by-step instructions to set up the project on your local machi
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/free-audiobook-generator.git
-cd free-audiobook-generator
+git clone https://github.com/SVafadar69/audiobook_generator.git
+cd audiobook-generator
 ```
 
 ### 2. Create and Activate a Virtual Environment
