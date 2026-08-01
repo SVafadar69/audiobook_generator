@@ -29,6 +29,10 @@ load_dotenv()
 
 SAMPLE_RATE = 24000
 
+# import torch 
+# print(torch.cuda.is_available())
+# print(torch.cuda.get_device_name(0))
+
 openai_api_key = os.getenv("openai_api_key")
 groq_api_key   = os.getenv("groq_api_key")
 exa_api_key    = os.getenv("exa_api_key")
@@ -212,6 +216,9 @@ def play_text(cleaned_text):
 
     engine.say(cleaned_text)
     engine.runAndWait()
+
+# torch.cuda.set_device(0) -> RealtimeTTS Wrapper 
+#   
 
 async def kokoro_stream(text, onnx_file, voices_file):
     kokoro = Kokoro(onnx_file, voices_file)
