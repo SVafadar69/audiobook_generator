@@ -74,8 +74,8 @@ streamlit run app.py
 Once running, open your browser and navigate to `http://localhost:` (or the port specified in your terminal). 
 
 1. Enter a book name (e.g., *Moby Dick*) or a research theme (e.g., *Defense spending in Ukraine*).
-2. Click **Generate Audiobook** or press ENTER.
-3. Once processing completes, view the completed audiobook in your project.
+2. Click **Generate Audiobook** or press **ENTER**.
+3. Once processing completes, the completed audiobook will be `audio.wav` in your local project folder.
 
 ---
 
