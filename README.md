@@ -74,7 +74,7 @@ Once running, open your browser and navigate to `http://localhost:8501` (or the 
 
 1. Enter a book name (e.g., *Moby Dick*) or a research theme (e.g., *Defense spending in Ukraine*).
 2. Click **Generate Audiobook** or press **ENTER**.
-3. Once processing completes, the completed audiobook will be `audio.wav` in your local project folder, and the book will be downloadable in your browser.
+3. Once processing completes, the completed audiobook will be `audio.wav` in your local project folder, and will be downloadable in your browser.
 
 ---
 
