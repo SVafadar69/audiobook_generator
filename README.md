@@ -6,7 +6,7 @@
 
 AI-powered audiobook generator. Enter the title of a book, or a concept you want to learn about (i.e. defense spending in Ukraine), and a human-sounding audiobook will be generated for you for free. 
 
-Use the Anna's Archive or Exa API for content curation, and Kokoro-ONNX for TTS generation of the audiobook. 
+Use the Anna's Archive or Exa API for content curation, and GPU-accelerated Kokoro-ONNX for TTS generation of the audiobook. 
 
 ---
 
@@ -14,8 +14,7 @@ Use the Anna's Archive or Exa API for content curation, and Kokoro-ONNX for TTS 
 
 - **Book Mode**: Automatically searches and downloads target books (e.g., via Anna's Archive integration) and prepares them for speech synthesis.
 - **Theme/Research Mode**: Executes deep searches across the web using the **Exa API**, aggregates relevant articles, summarizes them into a coherent narrative script, and converts them to audio.
-- **Natural Voice Synthesis**: Integrates advanced TTS models to generate expressive, natural-sounding audio files.
-
+- **Audio Generation**: Integrates advanced TTS models to generate expressive, natural-sounding audio files.
 
 ---
 
@@ -75,7 +74,7 @@ Once running, open your browser and navigate to `http://localhost:8501` (or the 
 
 1. Enter a book name (e.g., *Moby Dick*) or a research theme (e.g., *Defense spending in Ukraine*).
 2. Click **Generate Audiobook** or press **ENTER**.
-3. Once processing completes, the completed audiobook will be `audio.wav` in your local project folder.
+3. Once processing completes, the completed audiobook will be `audio.wav` in your local project folder, and the book will be downloadable in your browser.
 
 ---
 
@@ -105,4 +104,5 @@ You are welcome to contribute to the project. The remaining needed features are:
 - [x] **UI Enhancements**: Create a download button in the user interface to export generated audiobooks. Right now they are being written within the project folder locally.
 - [x] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
 - [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
+- [ ] **Text Cleaning**: Run async LLM apis to remove all the html/other artifacts from the articles, so it is clean text.
 ---
