@@ -105,4 +105,5 @@ You are welcome to contribute to the project. The remaining needed features are:
 - [x] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
 - [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
 - [ ] **Text Cleaning**: Run async LLM apis to remove all the html/other artifacts from the articles, so it is clean text.
+- [ ] **Book Generation Progress**: Implement animation on the UI end to indicate the progress state of the audiobook generation.
 ---
