@@ -222,6 +222,7 @@ def play_text(cleaned_text):
 # torch.cuda.set_device(0) -> RealtimeTTS Wrapper 
 #   
 
+
 async def kokoro_stream(text, onnx_file, voices_file, file_name: str) -> None:
     kokoro = Kokoro(onnx_file, voices_file)
 
@@ -604,7 +605,7 @@ def merge_all_chapters_into_final_book(
 
 def make_exa_call(
     query: str = "",
-    num_results: int = 1,
+    num_results: int = 30,
     start_published_date: str = "2025-09-01",
     end_published_date: str = str(datetime.date.today()),
     _type: str = "instant",
@@ -719,6 +720,30 @@ def join_embeddings(all_sentences, client):
     second_half_embeddings = embed_all_articles(second_half_sentences, client)
     all_embeddings = np.concat((first_half_embeddings, second_half_embeddings), axis = 0)
     return all_embeddings
+
+def batch_sentences(sentences: list[str]) -> list[list[str]]: 
+    batch_size = 50 
+    sentence_batches = []
+    for i in range(0, len(sentences), batch_size):
+        batch = sentences[i:i + batch_size]
+        sentence_batches.append(batch)
+    return sentence_batches
+
+def open_prompt(prompt_path: str) -> str: 
+    with open(prompt_path, 'r', encoding='utf-8') as file: 
+        return file.read()
+
+async def process_sentence(sentence: str) -> str: 
+    client = AsyncOpenAI(api_key = os.getenv("openai_api_key"))
+    response = await client.responses.create(
+        model = 'gpt-5.4-nano',
+        input = open_prompt('system_prompt.md').format(sentence)
+    )
+    return response.output_text
+
+async def process_all_sentences(sentences: list[str]) -> list[str]: 
+    tasks = [process_sentence(sentence) for sentence in sentences]
+    return await asyncio.gather(*tasks)
 
 def filter_sentences(all_sentences, all_embeddings): # filter irrelevant sentences from each article -> return 
     # all articles. or get mean of each article, then clean sentences + return article. 

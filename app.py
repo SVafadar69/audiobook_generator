@@ -14,6 +14,7 @@ import asyncio
 import soundfile as sf 
 import sounddevice as sd
 import os
+import time
 
 #from reserve import cleaned_text
 
@@ -54,7 +55,9 @@ from _test import (
     clean_for_tts, 
     play_text,
     kokoro_stream, 
-    parse_search_query)
+    parse_search_query, 
+    batch_sentences, 
+    process_all_sentences)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -120,36 +123,33 @@ st.markdown(
 st.markdown("<h1 style='text-align: center; font-size: 3.5rem; padding-bottom: 20px;'>Audiobook Generator</h1>", unsafe_allow_html=True)
 
 # The Search Bar
-search_query = st.text_input("Enter in any book. Include author and extension type (pdf, .epub) if you can.", placeholder="Search...")
-if search_query:
-    route_answer = groq_route_response(search_query)
+async def main(): 
+    search_query = st.text_input("Enter in any book. Include author and extension type (pdf, .epub) if you can.", placeholder="Search...")
+    if search_query:
+        route_answer = groq_route_response(search_query)
 
-    print(f'route_answer: {route_answer}')
-    if ast.literal_eval(route_answer) == "book": 
-        book_name, author, file_type = ast.literal_eval(parse_response(search_query))
-        results = retrieve_book(book_name, author, file_type)
-        print(f'results: {results[0]}')
+        print(f'route_answer: {route_answer}')
+        if ast.literal_eval(route_answer) == "book": 
+            book_name, author, file_type = ast.literal_eval(parse_response(search_query))
+            results = retrieve_book(book_name, author, file_type)
+            print(f'results: {results[0]}')
 
-    elif ast.literal_eval(route_answer) == "article": 
-        title = parse_search_query(search_query)
-        response = make_exa_call(query = search_query)
-        texts = [result.text for result in response.results]
-        all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
-        print(f'{len(all_sentences)}')
-        all_article_embeddings = join_embeddings(all_sentences, client = client)
-        print(all_article_embeddings.shape)
-        cleaned_sentences = filter_sentences(all_sentences, all_article_embeddings)
-        print(f'{np.array(cleaned_sentences).shape}')
-        print(f'first sentence: {cleaned_sentences[0]}')
-        all_articles_text = clean_for_tts(". ".join(cleaned_sentences))
-        with open('all_articles_text.txt', 'w', encoding='utf-8') as file: 
-            file.write(all_articles_text)
-        print(f'all articles text: {type(all_articles_text)}')
-        #write_out_kokoro()
-        if __name__ == "__main__":
-            asyncio.run(
-                kokoro_stream(all_articles_text, onnx_file, voices_file, title)
-            )
+        elif ast.literal_eval(route_answer) == "article": 
+            start_time = time.time()
+            title = parse_search_query(search_query)
+            response = make_exa_call(query = search_query)
+            texts = [result.text for result in response.results]
+            all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
+            print(f'{len(all_sentences)}')
+            all_article_embeddings = join_embeddings(all_sentences, client = client)
+            cleaned_sentences = filter_sentences(all_sentences, all_article_embeddings)
+            batched_sentences = batch_sentences(cleaned_sentences)
+            #all_articles_text = clean_for_tts(". ".join(cleaned_sentences))
+            sentences = await process_all_sentences(batched_sentences)
+            print(f'all sentences ready: took {time.time() - start_time} to clean all sentences')
+            all_articles_text = ". ".join(sentences)
+            await kokoro_stream(all_articles_text, onnx_file, voices_file, title)
+            print(f'audio ready: took {time.time() - start_time} to generate audio')
             finished = True
             audiobook_file_path = os.path.join(os.getcwd(), "audio.wav") 
             if finished: 
@@ -162,42 +162,44 @@ if search_query:
                         on_click = "ignore", 
                         type = "primary"
                     )
+if __name__ == "__main__":
+    asyncio.run(main())
 
-        #play_text(all_articles_text)
-        #articles_to_audio(cleaned_sentences)
+            #play_text(all_articles_text)
+            #articles_to_audio(cleaned_sentences)
 
-    # cols = st.columns(len(results[:3]))
-    # print(f'cols == {len(cols)} == number of valid books')
-    # for col, book in zip(cols, results):
-        # book_download_url = book.get('md5', '')
-        # if book_download_url: 
-        #     md5 = get_download_url(book_download_url)
-        #     book_contents = download_book()
-        # with col: 
-        #     title, author, img_url, date = book.get('title'), book.get('author'), book.get('imgUrl'), book.get('year')
-        #     print(title, author, img_url, date)
-        #     if title: 
-        #         col.markdown(f'**{title}**')
-        #     if author:
-        #         col.text(f"{author}")
-        #     if date: 
-        #         col.text(f"{date}")
+        # cols = st.columns(len(results[:3]))
+        # print(f'cols == {len(cols)} == number of valid books')
+        # for col, book in zip(cols, results):
+            # book_download_url = book.get('md5', '')
+            # if book_download_url: 
+            #     md5 = get_download_url(book_download_url)
+            #     book_contents = download_book()
+            # with col: 
+            #     title, author, img_url, date = book.get('title'), book.get('author'), book.get('imgUrl'), book.get('year')
+            #     print(title, author, img_url, date)
+            #     if title: 
+            #         col.markdown(f'**{title}**')
+            #     if author:
+            #         col.text(f"{author}")
+            #     if date: 
+            #         col.text(f"{date}")
 
-        #     st.markdown(
-        #         f"""
-        #         <div class="book-card">
-        #             <a href="{title}" target="_blank">
-        #                 <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 4px;">{title}</div>
-        #             </a>
-        #             <a href="{title}" target="_blank">
-        #                 <div style="font-size: 0.95rem;">{author}</div>
-        #             </a>
-        #         </div>
-        #         """,
-        #         unsafe_allow_html=True
-        #     )
+            #     st.markdown(
+            #         f"""
+            #         <div class="book-card">
+            #             <a href="{title}" target="_blank">
+            #                 <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 4px;">{title}</div>
+            #             </a>
+            #             <a href="{title}" target="_blank">
+            #                 <div style="font-size: 0.95rem;">{author}</div>
+            #             </a>
+            #         </div>
+            #         """,
+            #         unsafe_allow_html=True
+            #     )
 
-# online articles (exa api - links about X article), online web agent (do task on web get info), 
-# books (what you did) | exa article pulls -> LLM most capable at large contexts -> format into 
-# audiobook digestable format
-# 
+    # online articles (exa api - links about X article), online web agent (do task on web get info), 
+    # books (what you did) | exa article pulls -> LLM most capable at large contexts -> format into 
+    # audiobook digestable format
+    # 
