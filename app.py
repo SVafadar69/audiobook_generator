@@ -13,6 +13,7 @@ import numpy as np
 import asyncio
 import soundfile as sf 
 import sounddevice as sd
+import os
 
 #from reserve import cleaned_text
 
@@ -21,6 +22,8 @@ client = OpenAI(api_key = os.getenv('openai_api_key'))
 
 onnx_file = 'models/kokoro-v1.0.onnx'
 voices_file = 'models/voices-v1.0.bin'
+
+finished = False
 
 # from reserve import(
 #     get_download_url,
@@ -50,7 +53,8 @@ from _test import (
     groq_route_response,
     clean_for_tts, 
     play_text,
-    kokoro_stream)
+    kokoro_stream, 
+    parse_search_query)
 
 first_downloaded_save_path = os.getcwd()
 
@@ -127,6 +131,7 @@ if search_query:
         print(f'results: {results[0]}')
 
     elif ast.literal_eval(route_answer) == "article": 
+        title = parse_search_query(search_query)
         response = make_exa_call(query = search_query)
         texts = [result.text for result in response.results]
         all_sentences = [line.strip() for text in texts for line in text.splitlines() if line.strip()]
@@ -143,8 +148,20 @@ if search_query:
         #write_out_kokoro()
         if __name__ == "__main__":
             asyncio.run(
-                kokoro_stream(all_articles_text, onnx_file, voices_file)
+                kokoro_stream(all_articles_text, onnx_file, voices_file, title)
             )
+            finished = True
+            audiobook_file_path = os.path.join(os.getcwd(), "audio.wav") 
+            if finished: 
+                with open(audiobook_file_path, "rb") as audiobook_file: 
+                    st.download_button(
+                        label = "Download Audiobook",
+                        data = audiobook_file, 
+                        file_name = f"{title}.wav", 
+                        mime = "audio/wav",
+                        on_click = "ignore", 
+                        type = "primary"
+                    )
 
         #play_text(all_articles_text)
         #articles_to_audio(cleaned_sentences)

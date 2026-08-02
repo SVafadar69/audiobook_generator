@@ -60,7 +60,6 @@ def load_api_key():
 
 
 
-
 def clean_for_tts(text: str) -> str:
     """
     Cleans a string for natural TTS pronunciation via pyttsx3.
@@ -207,6 +206,9 @@ def clean_for_tts(text: str) -> str:
 
     return text
 
+def parse_search_query(query: str) -> str: 
+    return query.lower().replace(" ", "_")
+
 def play_text(cleaned_text):
 
     engine = pyttsx3.init()
@@ -220,7 +222,7 @@ def play_text(cleaned_text):
 # torch.cuda.set_device(0) -> RealtimeTTS Wrapper 
 #   
 
-async def kokoro_stream(text, onnx_file, voices_file):
+async def kokoro_stream(text, onnx_file, voices_file, file_name: str) -> None:
     kokoro = Kokoro(onnx_file, voices_file)
 
     stream = kokoro.create_stream(
@@ -230,7 +232,7 @@ async def kokoro_stream(text, onnx_file, voices_file):
         lang="en-us",
     )
 
-    with sf.SoundFile('audio.wav', mode = 'w', samplerate=SAMPLE_RATE, channels=1) as f:
+    with sf.SoundFile(f"{file_name}.wav", mode = 'w', samplerate=SAMPLE_RATE, channels=1) as f:
         count = 0
         async for samples, sample_rate in stream:
             count += 1
@@ -239,6 +241,8 @@ async def kokoro_stream(text, onnx_file, voices_file):
             #sd.wait()
             f.write(samples)
             #sf.write(f'audiobook_full/Book_{count}.wav', samples, sample_rate)
+
+    print(f'Finished writing audiobook')
 
 def route_response(user_input: str):
     """
@@ -600,7 +604,7 @@ def merge_all_chapters_into_final_book(
 
 def make_exa_call(
     query: str = "",
-    num_results: int = 30,
+    num_results: int = 1,
     start_published_date: str = "2025-09-01",
     end_published_date: str = str(datetime.date.today()),
     _type: str = "instant",

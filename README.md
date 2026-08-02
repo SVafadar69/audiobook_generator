@@ -71,7 +71,7 @@ To launch the application interface (e.g., Streamlit or Gradio):
 streamlit run app.py
 ```
 
-Once running, open your browser and navigate to `http://localhost:` (or the port specified in your terminal). 
+Once running, open your browser and navigate to `http://localhost:8501` (or the port specified in your terminal). 
 
 1. Enter a book name (e.g., *Moby Dick*) or a research theme (e.g., *Defense spending in Ukraine*).
 2. Click **Generate Audiobook** or press **ENTER**.
