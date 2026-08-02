@@ -102,7 +102,7 @@ You are welcome to contribute to the project. The remaining needed features are:
 
 ## 📌 Roadmap & Things Left to Do
 
-- [ ] **UI Enhancements**: Create a download button in the user interface to export generated audiobooks. Right now they are being written within the project folder locally. 
-- [ ] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
+- [x] **UI Enhancements**: Create a download button in the user interface to export generated audiobooks. Right now they are being written within the project folder locally.
+- [x] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
 - [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
 ---
