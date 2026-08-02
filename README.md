@@ -104,6 +104,6 @@ You are welcome to contribute to the project. The remaining needed features are:
 - [x] **UI Enhancements**: Create a download button in the user interface to export generated audiobooks. Right now they are being written within the project folder locally.
 - [x] **Loading States & Feedback**: Implement an animated loading screen and real-time progress indicators in the UI during long-running retrieval and synthesis tasks.
 - [ ] **GPU Acceleration**: Migrate the heavy inference and TTS backend to support CUDA-enabled GPUs, drastically reducing generation time.
-- [ ] **Text Cleaning**: Run async LLM apis to remove all the html/other artifacts from the articles, so it is clean text.
+- [x] **Text Cleaning**: Run async LLM apis to remove all the html/other artifacts from the articles, so it is clean text.
 - [ ] **Book Generation Progress**: Implement animation on the UI end to indicate the progress state of the audiobook generation.
 ---
